@@ -7,6 +7,7 @@ import { moveClipToTrack, repositionClip } from "../../store";
 import { useEffect, useRef } from "react";
 import { selectSelectedTrackId } from "@/app/store";
 import { GRID_SIZE } from "@/app/constants";
+import { useClipMove } from "@/app/hooks/useClipMove";
 
 interface TrackProps {
   track: TrackInterface;
@@ -18,6 +19,16 @@ interface TrackProps {
 function Track({ track, onTrackClick, renderClipHeader }: TrackProps) {
   const { trackHeader, clips } = track;
   const dispatch = useDispatch();
+
+  const dummyClip = clips[0] || {
+    id: -1,
+    name: "",
+    position: 0,
+    duration: 0,
+    color: "",
+  };
+
+  const { handleDrop } = useClipMove(dummyClip, trackHeader.id);
 
   const trackRef = useRef<HTMLDivElement>(null);
 
@@ -33,41 +44,6 @@ function Track({ track, onTrackClick, renderClipHeader }: TrackProps) {
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault(); // Allow dropping
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    const clipId = parseInt(e.dataTransfer.getData("clipId"));
-    const sourceTrackId = parseInt(e.dataTransfer.getData("sourceTrackId"));
-    const offsetX = parseInt(e.dataTransfer.getData("offsetX") || "0");
-  
-    // Calculate the raw position where the clip was dropped
-    const trackRect = e.currentTarget.getBoundingClientRect();
-    const rawPosition = Math.max(0, e.clientX - trackRect.left - offsetX);
-    
-    // Snap to grid
-    const snappedPosition = Math.round(rawPosition / GRID_SIZE) * GRID_SIZE;
-  
-    // If it's the same track, reposition the clip
-    if (sourceTrackId === trackHeader.id) {
-      dispatch(
-        repositionClip({
-          trackId: trackHeader.id,
-          clipId,
-          newPosition: snappedPosition,
-        })
-      );
-    } else {
-      // Moving between tracks
-      dispatch(
-        moveClipToTrack({
-          sourceTrackId,
-          targetTrackId: trackHeader.id,
-          clipId,
-          newPosition: snappedPosition,
-        })
-      );
-    }
   };
 
   const handleTrackClick = () => {
@@ -86,7 +62,9 @@ function Track({ track, onTrackClick, renderClipHeader }: TrackProps) {
         key={`track-${trackHeader.id}-clip-${clip.id}`}
         clip={clip}
         trackId={trackHeader.id}
-        clipHeader={renderClipHeader ? renderClipHeader(clip, trackHeader.id) : undefined}
+        clipHeader={
+          renderClipHeader ? renderClipHeader(clip, trackHeader.id) : undefined
+        }
       />
     ));
   };
@@ -94,10 +72,12 @@ function Track({ track, onTrackClick, renderClipHeader }: TrackProps) {
   return (
     <div
       ref={trackRef}
-      className={`${styles.trackContainer} ${isSelected ? styles.selected : ""}`}
+      className={`${styles.trackContainer} ${
+        isSelected ? styles.selected : ""
+      }`}
       onClick={handleTrackClick}
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
+      onDragOver={(e) => e.preventDefault()} // Allow dropping
+      onDrop={(e) => handleDrop(e, trackHeader.id)} // Use the hook's handleDrop
       style={{ position: "relative" }}
     >
       {renderClips()}
