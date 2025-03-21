@@ -1,0 +1,44 @@
+.trackListContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    transition: background-color 0.2s ease;
+    height: 100%;
+  }
+  
+  /* Style for when dragging over empty space */
+
+  
+  /* New track preview/indicator */
+  .emptySpaceIndicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    max-height: 84px; /* Match track height */
+    margin-top: 2px; /* Match the gap between tracks */
+  }
+  
+  .newTrackPreview {
+    background-color: rgba(76, 123, 217, 0.15);
+    border: 2px dashed rgba(76, 123, 217, 0.5);
+    border-radius: 4px;
+    padding: 0 30px; /* Removed top/bottom padding */
+    height: 84px; /* Match track height */
+    width: 100%; /* Take full width */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4c7bd9;
+    font-weight: 500;
+    animation: pulse 1.5s infinite ease-in-out;
+  }
+  
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 0.7;
+    }
+    50% {
+      opacity: 1;
+    }
+  }

@@ -1,0 +1,6 @@
+.playbackVolumeMeterContainer{
+    background-color: var(--panel-bg);
+    width: 96px;
+    flex: 1;
+    height: 100%;
+}

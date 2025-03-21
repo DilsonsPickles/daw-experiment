@@ -1,0 +1,19 @@
+.applicationHeaderContainer {
+    display: flex;
+    justify-content: space-between;
+    height: 40px;
+    color: white;
+}
+
+.tabGroup {
+    display: flex;
+    flex: 1;
+    gap: 8px;
+    align-items: center;
+}
+
+.windowButtonGroup {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}

@@ -1,0 +1,8 @@
+.trackHeaderListContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  justify-content: center;
+  width: 100%;
+  padding-left: 8px;
+}

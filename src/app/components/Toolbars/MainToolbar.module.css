@@ -1,0 +1,12 @@
+.mainToolbarContainer {
+    background-color: var(--panel-bg);
+    height: 64px;
+    border-bottom: 1px solid #000;
+    color: white;
+    padding: 16px 12px;
+}
+
+.transportButtonGroup {
+    display: flex;
+    gap: 4px;
+}

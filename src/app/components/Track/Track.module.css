@@ -1,0 +1,37 @@
+.trackContainer {
+  position: relative;
+  height: 84px;
+  margin-bottom: 0px;
+  background-color: rgba(255, 255, 255, 0.075);
+  transition: all 0.2s ease-in-out;
+}
+
+.selected {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: #666;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.5);
+}
+
+/* Style for when track is a potential drop target */
+.dragTarget {
+  background-color: rgba(70, 86, 110, 0.6);
+  animation: pulseHighlight 1.5s infinite ease-in-out;
+}
+
+/* Subtle pulsing animation */
+@keyframes pulseHighlight {
+  0% {
+    background-color: rgba(70, 86, 110, 0.6);
+  }
+  50% {
+    background-color: rgba(70, 86, 110, 0.75);
+  }
+  100% {
+    background-color: rgba(70, 86, 110, 0.6);
+  }
+}
+
+/* When both selected and drag target */
+.selected.dragTarget {
+  background-color: rgba(76, 123, 217, 0.35);
+}

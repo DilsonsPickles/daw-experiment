@@ -1,0 +1,7 @@
+.timelineRulerContainer {
+    display: flex;
+    background-color: var(--primary-bg);
+    min-height: 48px;
+    min-width: 100%;
+    width: max-content; /* Changed from auto to max-content */
+  }
