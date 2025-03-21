@@ -7,48 +7,24 @@ import { useClipMove } from "@/app/hooks/useClipMove";
 type ClipHeaderProps = {
   clip: ClipInterface;
   trackId: number;
-  onPositionUpdate?: (clipId: number, position: number) => void;
-  onDragStart?: (
-    clipId: number,
-    trackId: number,
-    position: number,
-    width: number
-  ) => void;
-  onDragEnd?: () => void;
 };
 
-export function ClipHeader({
-  clip,
-  trackId,
-  onPositionUpdate,
-  onDragStart,
-  onDragEnd,
-}: ClipHeaderProps) {
+export function ClipHeader({ clip, trackId }: ClipHeaderProps) {
   const { handleRename } = useClipRename(clip, trackId);
   const { handleRemove } = useClipRemove(clip, trackId);
   const clipRef = useRef<HTMLDivElement>(null);
   
-  // Use our clip move hook
-  const { 
-    handleDragStart: onDragStartHandler, 
-    handleDrag, 
-    handleDragEnd: onDragEndHandler 
-  } = useClipMove(
-    clip, 
-    trackId, 
-    onPositionUpdate, 
-    onDragStart, 
-    onDragEnd
-  );
+  // Use our clip move hook with built-in guideline support
+  const { handleDragStart, handleDrag, handleDragEnd } = useClipMove(clip, trackId);
 
   return (
     <div
       ref={clipRef}
       style={{ display: "flex", justifyContent: "space-between" }}
       draggable
-      onDragStart={onDragStartHandler}
+      onDragStart={handleDragStart}
       onDrag={handleDrag}
-      onDragEnd={onDragEndHandler}
+      onDragEnd={handleDragEnd}
     >
       <input
         style={{ width: "100%" }}
