@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { repositionClip, moveClipToTrack } from '@/app/store';
 import { ClipInterface } from '@/app/features/clips/clipTypes';
@@ -21,6 +21,7 @@ export function useClipMove(
 ) {
   const dispatch = useDispatch();
   const offsetXRef = useRef<number>(0);
+  const isDraggingRef = useRef(false);
   
   /**
    * Handles the start of a drag operation
@@ -37,6 +38,7 @@ export function useClipMove(
 
     // Store offset for use during drag
     offsetXRef.current = offsetX;
+    isDraggingRef.current = true;
 
     // Use the offset as the x-coordinate for setDragImage
     e.dataTransfer.setDragImage(clipElement, offsetX, 0);
@@ -48,26 +50,55 @@ export function useClipMove(
 
     // Notify guideline system if provided
     if (onDragStart) {
+      // This is critical - we need to pass the current position and width
       onDragStart(clip.id, trackId, clip.position, clip.duration);
+    }
+    
+    // Add global mousemove listener
+    document.addEventListener('mousemove', handleGlobalMouseMove);
+  };
+
+  /**
+   * Global mouse move handler for more accurate tracking
+   */
+  const handleGlobalMouseMove = (e: MouseEvent) => {
+    if (!isDraggingRef.current) return;
+    
+    // Find the track element under the cursor
+    const trackElements = document.querySelectorAll('[class*="trackContainer"]');
+    for (const trackElement of trackElements) {
+      const rect = trackElement.getBoundingClientRect();
+      
+      // Check if mouse is over this track
+      if (e.clientY >= rect.top && e.clientY <= rect.bottom) {
+        // Calculate position relative to track
+        const newPosition = Math.max(0, e.clientX - rect.left - offsetXRef.current);
+        
+        // Update guideline position
+        if (onPositionUpdate) {
+          onPositionUpdate(clip.id, newPosition);
+        }
+        
+        // No need to check other tracks
+        break;
+      }
     }
   };
 
   /**
-   * Handles the drag operation to update position for guidelines
+   * Handles the drag operation (may not fire continuously in all browsers)
    */
   const handleDrag = (e: React.DragEvent) => {
-    if (e.clientX === 0) return; // Skip invalid drag events
+    // Skip events with invalid coordinates
+    if (e.clientX === 0 && e.clientY === 0) return;
 
     const trackElement = e.currentTarget.closest('[class*="trackContainer"]');
     if (!trackElement) return;
 
     const trackRect = trackElement.getBoundingClientRect();
-    const offsetX = offsetXRef.current;
+    const newPosition = Math.max(0, e.clientX - trackRect.left - offsetXRef.current);
 
-    // Calculate new clip position based on cursor position and drag offset
-    const newPosition = Math.max(0, e.clientX - trackRect.left - offsetX);
-
-    // Notify guideline system about position change if provided
+    // Update guideline position
     if (onPositionUpdate) {
       onPositionUpdate(clip.id, newPosition);
     }
@@ -77,7 +108,13 @@ export function useClipMove(
    * Handles the end of a drag operation
    */
   const handleDragEnd = (e: React.DragEvent) => {
-    // Always make sure to clear guidelines, even if drop occurs outside a valid target
+    // Reset dragging state
+    isDraggingRef.current = false;
+    
+    // Clean up event listeners
+    document.removeEventListener('mousemove', handleGlobalMouseMove);
+    
+    // Notify guideline system
     if (onDragEnd) {
       onDragEnd();
     }
@@ -85,8 +122,6 @@ export function useClipMove(
 
   /**
    * Handle dropping clip on a track
-   * @param e The drop event
-   * @param targetTrackId The track ID receiving the drop
    */
   const handleDrop = (e: React.DragEvent, targetTrackId: number) => {
     e.preventDefault();
@@ -97,14 +132,12 @@ export function useClipMove(
   
     if (isNaN(clipId) || isNaN(sourceTrackId)) return;
     
-    // Calculate the raw position where the clip was dropped
+    // Calculate drop position
     const trackRect = e.currentTarget.getBoundingClientRect();
     const rawPosition = Math.max(0, e.clientX - trackRect.left - offsetX);
-    
-    // Snap to grid
     const snappedPosition = Math.round(rawPosition / GRID_SIZE) * GRID_SIZE;
   
-    // If it's the same track, reposition the clip
+    // Handle same track vs. different track
     if (sourceTrackId === targetTrackId) {
       dispatch(
         repositionClip({
@@ -114,7 +147,6 @@ export function useClipMove(
         })
       );
     } else {
-      // Moving between tracks
       dispatch(
         moveClipToTrack({
           sourceTrackId,
@@ -125,6 +157,13 @@ export function useClipMove(
       );
     }
   };
+
+  // Clean up event listeners on unmount
+  useEffect(() => {
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+    };
+  }, []);
 
   return {
     offsetX: offsetXRef.current,

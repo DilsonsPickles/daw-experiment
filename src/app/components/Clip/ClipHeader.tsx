@@ -28,8 +28,12 @@ export function ClipHeader({
   const { handleRemove } = useClipRemove(clip, trackId);
   const clipRef = useRef<HTMLDivElement>(null);
   
-  // Use our new hook for moving clips
-  const { handleDragStart, handleDrag, handleDragEnd } = useClipMove(
+  // Use our clip move hook
+  const { 
+    handleDragStart: onDragStartHandler, 
+    handleDrag, 
+    handleDragEnd: onDragEndHandler 
+  } = useClipMove(
     clip, 
     trackId, 
     onPositionUpdate, 
@@ -42,23 +46,9 @@ export function ClipHeader({
       ref={clipRef}
       style={{ display: "flex", justifyContent: "space-between" }}
       draggable
-      onDragStart={(e) => {
-        handleDragStart(e);
-        // Add opacity to the parent clip
-        const clipElement = e.currentTarget.closest("[data-clip-id]");
-        if (clipElement) {
-          (clipElement as HTMLElement).style.opacity = '0.5';
-        }
-      }}
+      onDragStart={onDragStartHandler}
       onDrag={handleDrag}
-      onDragEnd={(e) => {
-        handleDragEnd(e);
-        // Reset opacity
-        const clipElement = e.currentTarget.closest("[data-clip-id]");
-        if (clipElement) {
-          (clipElement as HTMLElement).style.opacity = '1';
-        }
-      }}
+      onDragEnd={onDragEndHandler}
     >
       <input
         style={{ width: "100%" }}
